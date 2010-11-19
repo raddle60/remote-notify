@@ -41,10 +41,12 @@ public class NotifyServer {
 	private JLabel jLabel = null;
 	private JTextField portTxt = null;
 	private IoAcceptor acceptor = new NioSocketAcceptor();  
-	private BufferedImage noMsgImage = null;
+	private BufferedImage noMsgImage = null;  //  @jve:decl-index=0:
 	private BufferedImage newMsgImage = null; 
-	private TrayIcon trayIcon = null; 
+	private TrayIcon trayIcon = null;  //  @jve:decl-index=0:
 	private long crossInc = 0;
+	private boolean hasMsg = false;
+	private Object waitingMsg = new Object();  //  @jve:decl-index=0:
 	/**
 	 * This method initializes jFrame
 	 * 
@@ -79,15 +81,13 @@ public class NotifyServer {
 
 			@Override
 			protected Object processCommand(Object command) {
-				crossInc ++;
 				if ("new".equals(command)) {
 					jFrame.setTitle("通知服务端 - 有新的消息");
 					getMessageTxt().setText("有新的消息");
 					trayIcon.setToolTip("有新的消息");
-					if(crossInc % 2 == 0){
-						trayIcon.setImage(noMsgImage);
-					} else {
-						trayIcon.setImage(newMsgImage);
+					hasMsg = true;
+					synchronized (waitingMsg) {
+						waitingMsg.notify();
 					}
 				} else if("none".equals(command)) {
 					jFrame.setTitle("通知服务端 - 沒有新消息");
@@ -96,6 +96,7 @@ public class NotifyServer {
 						trayIcon.setImage(noMsgImage);
 					}
 					trayIcon.setToolTip("沒有新消息");
+					hasMsg = false;
 				}
 				return null;
 			}
@@ -118,6 +119,11 @@ public class NotifyServer {
 			newMsgImage = ImageIO.read(NotifyServer.class.getResourceAsStream("/card.png"));
 			SystemTray systemTray = SystemTray.getSystemTray();
 			trayIcon = new TrayIcon(noMsgImage, "没有新的消息");
+			trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
+				public void mouseClicked(java.awt.event.MouseEvent e) {
+					System.out.println("mouseClicked()"); // TODO Auto-generated Event stub mouseClicked()
+				}
+			});
 			systemTray.add(trayIcon);
 		} catch (Exception e) {
 			getMessageTxt().setText(e.getMessage());
@@ -143,6 +149,44 @@ public class NotifyServer {
 			}
 			
 		});
+		//////////
+		Thread thread = new Thread(){
+
+			@Override
+			public void run() {
+				while(true){
+					if(hasMsg){
+						crossInc ++;
+						if(crossInc % 2 == 0){
+							trayIcon.setImage(noMsgImage);
+						} else {
+							trayIcon.setImage(newMsgImage);
+						}
+						try {
+							Thread.sleep(500);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e.getMessage(), e);
+						}
+					} else {
+						synchronized (waitingMsg) {
+							try {
+								waitingMsg.wait();
+							} catch (InterruptedException e) {
+								throw new RuntimeException(e.getMessage(), e);
+							}
+						}
+					}
+				}
+			}
+			
+		};
+		thread.setDaemon(true);
+		trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
+			public void mouseClicked(java.awt.event.MouseEvent e) {
+				System.out.println("mouseClicked()"); // TODO Auto-generated Event stub mouseClicked()
+			}
+		});
+		thread.start();
 	}
 	/**
 	 * This method initializes jDesktopPane	
