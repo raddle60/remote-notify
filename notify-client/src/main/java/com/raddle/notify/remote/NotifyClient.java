@@ -312,14 +312,16 @@ public class NotifyClient {
 			if(connector.getManagedSessionCount() == 0){
 				try {
 					String[] ss = getServerTxt().getText().split(":");
-					ConnectFuture future = connector.connect(new InetSocketAddress(ss[0], Integer.parseInt(ss[1])));
-					future.awaitUninterruptibly();
-					IoSession session = future.getSession();
-					CommandSender sender = new SessionCommandSender(session);
-					if(changed){
-						sender.sendCommand("new");
-					} else {
-						sender.sendCommand("none");
+					if(ss.length == 2){
+						ConnectFuture future = connector.connect(new InetSocketAddress(ss[0], Integer.parseInt(ss[1])));
+						future.awaitUninterruptibly();
+						IoSession session = future.getSession();
+						CommandSender sender = new SessionCommandSender(session);
+						if(changed){
+							sender.sendCommand("new");
+						} else {
+							sender.sendCommand("none");
+						}
 					}
 				} catch (Exception e) {
 					getJTextArea().setText(e.getMessage());
