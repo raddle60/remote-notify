@@ -119,11 +119,6 @@ public class NotifyServer {
 			newMsgImage = ImageIO.read(NotifyServer.class.getResourceAsStream("/card.png"));
 			SystemTray systemTray = SystemTray.getSystemTray();
 			trayIcon = new TrayIcon(noMsgImage, "没有新的消息");
-			trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
-				public void mouseClicked(java.awt.event.MouseEvent e) {
-					System.out.println("mouseClicked()"); // TODO Auto-generated Event stub mouseClicked()
-				}
-			});
 			systemTray.add(trayIcon);
 		} catch (Exception e) {
 			getMessageTxt().setText(e.getMessage());
@@ -181,11 +176,6 @@ public class NotifyServer {
 			
 		};
 		thread.setDaemon(true);
-		trayIcon.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent e) {
-				System.out.println("mouseClicked()"); // TODO Auto-generated Event stub mouseClicked()
-			}
-		});
 		thread.start();
 	}
 	/**
