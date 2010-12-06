@@ -240,6 +240,11 @@ public class NotifyClient {
 			public void sessionIdle(IoSession session, IdleStatus status) throws Exception {
 				session.close(true);
 			}
+
+			@Override
+			protected String getExecuteQueue(Object command) {
+				return null;
+			}
 		});
 	}
 

@@ -111,6 +111,16 @@ public class NotifyServer {
 				session.close(true);
 			}
 
+			@Override
+			protected String getExecuteQueue(Object command) {
+				return null;
+			}
+
+			@Override
+			public void sessionClosed(IoSession session) throws Exception {
+				hasMsg = false;
+			}
+
 		});
 		getStopBtn().setEnabled(false);
 		/////// tray
