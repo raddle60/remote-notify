@@ -118,7 +118,7 @@ public class NotifyServer {
 
 			@Override
 			public void sessionClosed(IoSession session) throws Exception {
-				hasMsg = false;
+				hasMsg = true;//断开连接说明有异常情况
 			}
 
 		});
