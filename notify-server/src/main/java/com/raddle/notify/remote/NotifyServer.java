@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.core.session.IdleStatus;
@@ -31,7 +32,12 @@ import com.raddle.nio.mina.cmd.handler.AbstractCommandHandler;
 import com.raddle.nio.mina.codec.ChainCodecFactory;
 
 public class NotifyServer {
-
+	static {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+		}
+	}
 	private JFrame jFrame = null;
 	private JDesktopPane jDesktopPane = null;
 	private JButton startBtn = null;
