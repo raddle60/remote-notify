@@ -174,9 +174,11 @@ public class NotifyClient {
 				@Override
 				public void run() {
 					StringBuilder sb = new StringBuilder();
+					boolean changed = false;
 					try {
 						if(listPsColor == null || listPsColor.size() == 0){
 							sb.append("没有配置比较的颜色").append("\n");
+							changed = true;
 						}
 						for (PositionColor positionColor : listPsColor) {
 							Point point = getComparePoint(positionColor.getPostion());
@@ -186,17 +188,15 @@ public class NotifyClient {
 								if (cc != null) {
 									if(positionColor.isEqual() && cc.equals(c)){
 										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-										sendMessage(true);
+										changed = true;
 									} else if(!positionColor.isEqual() && !cc.equals(c)){
 										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-										sendMessage(true);
+										changed = true;
 									} else {
 										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
-										sendMessage(false);
 									}
 								} else {
 									sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
-									sendMessage(false);
 								}
 							} else {
 								sb.append("没有配置取点坐标").append("\n");
@@ -205,6 +205,7 @@ public class NotifyClient {
 					} catch (Exception e) {
 						sb.append("\n").append(e.getMessage());
 					}
+					sendMessage(changed);
 					getJTextArea().setText(sb.toString());
 				}
 			}, 500, 1000);
