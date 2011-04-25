@@ -64,6 +64,7 @@ public class NotifyClient {
 	private File propFile = new File(System.getProperty("user.home")+"/remote-notify.properties");
 	private NioSocketConnector connector = new NioSocketConnector();  //  @jve:decl-index=0:
 	private List<PositionColor> listPsColor = new ArrayList<PositionColor>();  //  @jve:decl-index=0:
+	private JLabel jLabel = null;
 
 	/**
 	 * This method initializes jFrame
@@ -75,7 +76,7 @@ public class NotifyClient {
 			jFrame = new JFrame();
 			jFrame.setLocationRelativeTo(null);
 			jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			jFrame.setSize(547, 276);
+			jFrame.setSize(545, 363);
 			jFrame.setContentPane(getJDesktopPane());
 			jFrame.setTitle("通知客户端");
 			jFrame.addWindowListener(new WindowAdapter() {
@@ -97,14 +98,18 @@ public class NotifyClient {
 	 */
 	private JDesktopPane getJDesktopPane() {
 		if (jDesktopPane == null) {
+			jLabel = new JLabel();
+			jLabel.setBounds(new Rectangle(10, 214, 521, 33));
+			jLabel.setText("");
 			jLabel2 = new JLabel();
-			jLabel2.setBounds(new Rectangle(12, 187, 60, 25));
+			jLabel2.setBounds(new Rectangle(13, 254, 60, 25));
 			jLabel2.setText("Server");
 			jDesktopPane = new JDesktopPane();
 			jDesktopPane.add(getJScrollPane(), null);
 			jDesktopPane.add(jLabel2, null);
 			jDesktopPane.add(getServerTxt(), null);
 			jDesktopPane.add(getSaveBtn(), null);
+			jDesktopPane.add(jLabel, null);
 		}
 		return jDesktopPane;
 	}
@@ -117,7 +122,7 @@ public class NotifyClient {
 	private JScrollPane getJScrollPane() {
 		if (jScrollPane == null) {
 			jScrollPane = new JScrollPane();
-			jScrollPane.setBounds(new Rectangle(9, 5, 522, 160));
+			jScrollPane.setBounds(new Rectangle(9, 5, 522, 196));
 			jScrollPane.setViewportView(getJTextArea());
 		}
 		return jScrollPane;
@@ -143,7 +148,7 @@ public class NotifyClient {
 	private JTextField getServerTxt() {
 		if (serverTxt == null) {
 			serverTxt = new JTextField();
-			serverTxt.setBounds(new Rectangle(81, 184, 154, 29));
+			serverTxt.setBounds(new Rectangle(83, 253, 154, 29));
 		}
 		return serverTxt;
 	}
@@ -286,7 +291,7 @@ public class NotifyClient {
 	private JButton getSaveBtn() {
 		if (saveBtn == null) {
 			saveBtn = new JButton();
-			saveBtn.setBounds(new Rectangle(252, 187, 104, 26));
+			saveBtn.setBounds(new Rectangle(250, 255, 104, 26));
 			saveBtn.setText("保存配置");
 			saveBtn.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -319,8 +324,9 @@ public class NotifyClient {
 							sender.sendCommand("none");
 						}
 					}
+					jLabel.setText("");
 				} catch (Exception e) {
-					getJTextArea().setText(e.getMessage());
+					jLabel.setText("发送异常：" + e.getMessage());
 				}
 			} else {
 				try {
@@ -330,8 +336,9 @@ public class NotifyClient {
 					} else {
 						sender.sendCommand("none");
 					}
+					jLabel.setText("");
 				} catch (Exception e) {
-					getJTextArea().setText(e.getMessage());
+					jLabel.setText("发送异常：" + e.getMessage());
 				}
 			}
 		}
