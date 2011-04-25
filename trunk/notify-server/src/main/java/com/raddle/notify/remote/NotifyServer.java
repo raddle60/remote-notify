@@ -26,9 +26,9 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 
+import com.raddle.nio.codec.impl.HessianCodec;
 import com.raddle.nio.mina.cmd.handler.AbstractCommandHandler;
-import com.raddle.nio.mina.hessian.HessianDecoder;
-import com.raddle.nio.mina.hessian.HessianEncoder;
+import com.raddle.nio.mina.codec.ChainCodecFactory;
 
 public class NotifyServer {
 
@@ -75,7 +75,9 @@ public class NotifyServer {
 
 	private void init(){
 		acceptor.getSessionConfig().setReaderIdleTime(10);// 10秒沒收到数据就超时
-		acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(new HessianEncoder(), new HessianDecoder()));
+		ChainCodecFactory chainCodecFactory = new ChainCodecFactory();
+		chainCodecFactory.addFirst(new HessianCodec());
+		acceptor.getFilterChain().addLast("codec", new ProtocolCodecFilter(chainCodecFactory));
 		// 处理接收的命令和响应
 		acceptor.setHandler(new AbstractCommandHandler() {
 
