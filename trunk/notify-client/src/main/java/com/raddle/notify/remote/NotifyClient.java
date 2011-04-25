@@ -10,9 +10,12 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -38,6 +41,9 @@ import com.raddle.nio.mina.cmd.SessionCommandSender;
 import com.raddle.nio.mina.cmd.api.CommandSender;
 import com.raddle.nio.mina.cmd.handler.AbstractCommandHandler;
 import com.raddle.nio.mina.codec.ChainCodecFactory;
+import com.raddle.notify.remote.bean.PositionColor;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class NotifyClient {
 	static {
@@ -51,16 +57,13 @@ public class NotifyClient {
 	private JDesktopPane jDesktopPane = null;
 	private JScrollPane jScrollPane = null;
 	private JTextArea jTextArea = null;
-	private JLabel jLabel = null;
-	private JTextField rgbTxt = null;
-	private JLabel jLabel1 = null;
-	private JTextField pointTxt = null;
 	private JLabel jLabel2 = null;
 	private JTextField serverTxt = null;
 	private JButton saveBtn = null;
 	private Properties properties = new Properties();
 	private File propFile = new File(System.getProperty("user.home")+"/remote-notify.properties");
-	NioSocketConnector connector = new NioSocketConnector();
+	private NioSocketConnector connector = new NioSocketConnector();  //  @jve:decl-index=0:
+	private List<PositionColor> listPsColor = new ArrayList<PositionColor>();  //  @jve:decl-index=0:
 
 	/**
 	 * This method initializes jFrame
@@ -95,20 +98,10 @@ public class NotifyClient {
 	private JDesktopPane getJDesktopPane() {
 		if (jDesktopPane == null) {
 			jLabel2 = new JLabel();
-			jLabel2.setBounds(new Rectangle(12, 141, 60, 25));
+			jLabel2.setBounds(new Rectangle(12, 187, 60, 25));
 			jLabel2.setText("Server");
-			jLabel1 = new JLabel();
-			jLabel1.setBounds(new Rectangle(255, 104, 59, 24));
-			jLabel1.setText("Point");
-			jLabel = new JLabel();
-			jLabel.setBounds(new Rectangle(12, 102, 60, 24));
-			jLabel.setText("RGB");
 			jDesktopPane = new JDesktopPane();
 			jDesktopPane.add(getJScrollPane(), null);
-			jDesktopPane.add(jLabel, null);
-			jDesktopPane.add(getRgbTxt(), null);
-			jDesktopPane.add(jLabel1, null);
-			jDesktopPane.add(getPointTxt(), null);
 			jDesktopPane.add(jLabel2, null);
 			jDesktopPane.add(getServerTxt(), null);
 			jDesktopPane.add(getSaveBtn(), null);
@@ -124,7 +117,7 @@ public class NotifyClient {
 	private JScrollPane getJScrollPane() {
 		if (jScrollPane == null) {
 			jScrollPane = new JScrollPane();
-			jScrollPane.setBounds(new Rectangle(9, 5, 522, 86));
+			jScrollPane.setBounds(new Rectangle(9, 5, 522, 160));
 			jScrollPane.setViewportView(getJTextArea());
 		}
 		return jScrollPane;
@@ -143,32 +136,6 @@ public class NotifyClient {
 	}
 
 	/**
-	 * This method initializes rgbTxt
-	 * 
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getRgbTxt() {
-		if (rgbTxt == null) {
-			rgbTxt = new JTextField();
-			rgbTxt.setBounds(new Rectangle(81, 102, 154, 25));
-		}
-		return rgbTxt;
-	}
-
-	/**
-	 * This method initializes pointTxt
-	 * 
-	 * @return javax.swing.JTextField
-	 */
-	private JTextField getPointTxt() {
-		if (pointTxt == null) {
-			pointTxt = new JTextField();
-			pointTxt.setBounds(new Rectangle(329, 104, 197, 26));
-		}
-		return pointTxt;
-	}
-
-	/**
 	 * This method initializes serverTxt
 	 * 
 	 * @return javax.swing.JTextField
@@ -176,19 +143,25 @@ public class NotifyClient {
 	private JTextField getServerTxt() {
 		if (serverTxt == null) {
 			serverTxt = new JTextField();
-			serverTxt.setBounds(new Rectangle(80, 138, 154, 29));
+			serverTxt.setBounds(new Rectangle(81, 184, 154, 29));
 		}
 		return serverTxt;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void init() {
 		//////////////// load configuration
+		InputStream colorInputStream = this.getClass().getResourceAsStream("/postion-color.xml");
+		if(colorInputStream != null){
+	    	XStream xstream = new XStream(new DomDriver());
+	    	xstream.alias("postion-color", ArrayList.class);
+	    	xstream.alias("item", PositionColor.class);
+			listPsColor =  (List<PositionColor>) xstream.fromXML(colorInputStream);
+		}
 		if(propFile.exists()){
 			try {
 				properties.load(new InputStreamReader(new FileInputStream(propFile),"utf-8"));
 				getServerTxt().setText(properties.getProperty("server"));
-				getRgbTxt().setText(properties.getProperty("rgb"));
-				getPointTxt().setText(properties.getProperty("point"));
 			} catch (Exception e1) {
 				getJTextArea().setText(e1.getMessage());
 			}
@@ -200,22 +173,39 @@ public class NotifyClient {
 
 				@Override
 				public void run() {
+					StringBuilder sb = new StringBuilder();
 					try {
-						Point point = getComparePoint();
-						if (point != null) {
-							Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
-							getJTextArea().setText("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue());
-							Color cc = getCompareColor();
-							if (cc != null && !cc.equals(c)) {
-								getJTextArea().setText("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue());
-								sendMessage(true);
+						if(listPsColor == null || listPsColor.size() == 0){
+							sb.append("没有配置比较的颜色").append("\n");
+						}
+						for (PositionColor positionColor : listPsColor) {
+							Point point = getComparePoint(positionColor.getPostion());
+							if (point != null) {
+								Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
+								Color cc = getCompareColor(positionColor.getColor());
+								if (cc != null) {
+									if(positionColor.isEqual() && cc.equals(c)){
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
+										sendMessage(true);
+									} else if(!positionColor.isEqual() && !cc.equals(c)){
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
+										sendMessage(true);
+									} else {
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
+										sendMessage(false);
+									}
+								} else {
+									sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
+									sendMessage(false);
+								}
 							} else {
-								sendMessage(false);
+								sb.append("没有配置取点坐标").append("\n");
 							}
 						}
 					} catch (Exception e) {
-						getJTextArea().setText(e.getMessage());
+						sb.append("\n").append(e.getMessage());
 					}
+					getJTextArea().setText(sb.toString());
 				}
 			}, 500, 1000);
 		} catch (AWTException e) {
@@ -250,9 +240,9 @@ public class NotifyClient {
 		});
 	}
 
-	private Point getComparePoint() {
-		if (pointTxt.getText().length() > 0) {
-			String[] pp = pointTxt.getText().split(",");
+	private Point getComparePoint(String point) {
+		if (point != null && point.length() > 0) {
+			String[] pp = point.split(",");
 			if (pp.length == 2) {
 				try {
 					int x = Integer.parseInt(pp[0]);
@@ -265,11 +255,11 @@ public class NotifyClient {
 		return null;
 	}
 
-	private Color getCompareColor() {
-		if (rgbTxt.getText().length() > 0) {
+	private Color getCompareColor(String color) {
+		if (color != null && color.length() > 0) {
 			try {
-				if (rgbTxt.getText().indexOf(',') != -1) {
-					String[] rgbStr = rgbTxt.getText().split(",");
+				if (color.indexOf(',') != -1) {
+					String[] rgbStr = color.split(",");
 					if (rgbStr.length == 3) {
 						int[] rgb = new int[3];
 						rgb[0] = Integer.parseInt(rgbStr[0]);
@@ -277,8 +267,8 @@ public class NotifyClient {
 						rgb[2] = Integer.parseInt(rgbStr[2]);
 						return new Color(rgb[0], rgb[1], rgb[2]);
 					}
-				} else if (rgbTxt.getText().startsWith("0x")) {
-					String rgbStr = rgbTxt.getText().substring(2);
+				} else if (color.startsWith("0x")) {
+					String rgbStr = color.substring(2);
 					return new Color(Integer.parseInt(rgbStr, 16));
 				}
 			} catch (NumberFormatException e) {
@@ -295,13 +285,11 @@ public class NotifyClient {
 	private JButton getSaveBtn() {
 		if (saveBtn == null) {
 			saveBtn = new JButton();
-			saveBtn.setBounds(new Rectangle(253, 141, 104, 26));
+			saveBtn.setBounds(new Rectangle(252, 187, 104, 26));
 			saveBtn.setText("保存配置");
 			saveBtn.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					properties.setProperty("server", getServerTxt().getText());
-					properties.setProperty("rgb", getRgbTxt().getText());
-					properties.setProperty("point", getPointTxt().getText());
 					try {
 						properties.store(new OutputStreamWriter(new FileOutputStream(propFile),"utf-8"), "");
 						getJTextArea().setText("保存配置成功");
