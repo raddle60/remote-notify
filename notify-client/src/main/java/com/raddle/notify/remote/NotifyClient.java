@@ -9,6 +9,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -157,6 +158,16 @@ public class NotifyClient {
 	private void init() {
 		//////////////// load configuration
 		InputStream colorInputStream = this.getClass().getResourceAsStream("/postion-color.xml");
+		if(colorInputStream == null){
+			File file = new File("postion-color.xml");
+			if(file.exists()){
+				try {
+					colorInputStream = new FileInputStream(file);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 		if(colorInputStream != null){
 	    	XStream xstream = new XStream(new DomDriver());
 	    	xstream.alias("postion-color", ArrayList.class);
@@ -184,27 +195,28 @@ public class NotifyClient {
 						if(listPsColor == null || listPsColor.size() == 0){
 							sb.append("没有配置比较的颜色").append("\n");
 							changed = true;
-						}
-						for (PositionColor positionColor : listPsColor) {
-							Point point = getComparePoint(positionColor.getPostion());
-							if (point != null) {
-								Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
-								Color cc = getCompareColor(positionColor.getColor());
-								if (cc != null) {
-									if(positionColor.isEqual() && cc.equals(c)){
-										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-										changed = true;
-									} else if(!positionColor.isEqual() && !cc.equals(c)){
-										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-										changed = true;
+						} else {
+							for (PositionColor positionColor : listPsColor) {
+								Point point = getComparePoint(positionColor.getPostion());
+								if (point != null) {
+									Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
+									Color cc = getCompareColor(positionColor.getColor());
+									if (cc != null) {
+										if(positionColor.isEqual() && cc.equals(c)){
+											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
+											changed = true;
+										} else if(!positionColor.isEqual() && !cc.equals(c)){
+											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
+											changed = true;
+										} else {
+											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
+										}
 									} else {
-										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
 									}
 								} else {
-									sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
+									sb.append("没有配置取点坐标").append("\n");
 								}
-							} else {
-								sb.append("没有配置取点坐标").append("\n");
 							}
 						}
 					} catch (Exception e) {
