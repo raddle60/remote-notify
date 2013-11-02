@@ -62,7 +62,7 @@ public class NotifyClient {
 	private JTextField serverTxt = null;
 	private JButton saveBtn = null;
 	private Properties properties = new Properties();
-	private File propFile = new File(System.getProperty("user.home")+"/remote-notify.properties");
+	private File propFile = new File(System.getProperty("user.home")+"/remote-notify/remote-notify.properties");
 	private NioSocketConnector connector = new NioSocketConnector();  //  @jve:decl-index=0:
 	private List<PositionColor> listPsColor = new ArrayList<PositionColor>();  //  @jve:decl-index=0:
 	private JLabel jLabel = null;
@@ -106,6 +106,7 @@ public class NotifyClient {
 			jLabel2.setBounds(new Rectangle(13, 254, 60, 25));
 			jLabel2.setText("Server");
 			jDesktopPane = new JDesktopPane();
+			jDesktopPane.setBackground(Color.WHITE);
 			jDesktopPane.add(getJScrollPane(), null);
 			jDesktopPane.add(jLabel2, null);
 			jDesktopPane.add(getServerTxt(), null);
@@ -159,7 +160,7 @@ public class NotifyClient {
 		//////////////// load configuration
 		InputStream colorInputStream = this.getClass().getResourceAsStream("/position-color.xml");
 		if(colorInputStream == null){
-			File file = new File("postion-color.xml");
+			File file = new File(System.getProperty("user.home")+"/remote-notify/position-color.xml");
 			if(file.exists()){
 				try {
 					colorInputStream = new FileInputStream(file);
@@ -309,6 +310,7 @@ public class NotifyClient {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					properties.setProperty("server", getServerTxt().getText());
 					try {
+						propFile.mkdirs();
 						properties.store(new OutputStreamWriter(new FileOutputStream(propFile),"utf-8"), "");
 						getJTextArea().setText("保存配置成功");
 					} catch (Exception e1) {
