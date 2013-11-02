@@ -157,7 +157,7 @@ public class NotifyClient {
 	@SuppressWarnings("unchecked")
 	private void init() {
 		//////////////// load configuration
-		InputStream colorInputStream = this.getClass().getResourceAsStream("/postion-color.xml");
+		InputStream colorInputStream = this.getClass().getResourceAsStream("/position-color.xml");
 		if(colorInputStream == null){
 			File file = new File("postion-color.xml");
 			if(file.exists()){
