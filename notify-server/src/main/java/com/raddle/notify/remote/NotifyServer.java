@@ -9,6 +9,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.net.InetSocketAddress;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -89,8 +91,9 @@ public class NotifyServer {
 
 			@Override
 			protected Object processCommand(Object command) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				if ("new".equals(command)) {
-					jFrame.setTitle("通知服务端 - 有新的消息");
+					jFrame.setTitle("通知服务端 - 有新的消息 " + sdf.format(new Date()));
 					getMessageTxt().setText("有新的消息");
 					trayIcon.setToolTip("有新的消息");
 					hasMsg = true;
@@ -98,7 +101,7 @@ public class NotifyServer {
 						waitingMsg.notify();
 					}
 				} else if("none".equals(command)) {
-					jFrame.setTitle("通知服务端 - 沒有新消息");
+					jFrame.setTitle("通知服务端 - 沒有新消息 " + sdf.format(new Date()));
 					getMessageTxt().setText("沒有新消息");
 					if (trayIcon.getImage() != noMsgImage) {
 						trayIcon.setImage(noMsgImage);

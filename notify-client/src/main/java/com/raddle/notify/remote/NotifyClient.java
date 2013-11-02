@@ -15,7 +15,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
@@ -191,6 +193,8 @@ public class NotifyClient {
 				@Override
 				public void run() {
 					StringBuilder sb = new StringBuilder();
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					sb.append(sdf.format(new Date()) + " ");
 					boolean changed = false;
 					try {
 						if(listPsColor == null || listPsColor.size() == 0){
@@ -324,6 +328,7 @@ public class NotifyClient {
 	
 	private void sendMessage(boolean changed){
 		if(getServerTxt().getText().length() > 0){
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			if(connector.getManagedSessionCount() == 0){
 				try {
 					String[] ss = getServerTxt().getText().split(":");
@@ -338,9 +343,10 @@ public class NotifyClient {
 							sender.sendCommand("none");
 						}
 					}
-					jLabel.setText("");
+					jLabel.setText(sdf.format(new Date()) + " 已连接到:"+ getServerTxt().getText());
+					getServerTxt().setEditable(false);
 				} catch (Exception e) {
-					jLabel.setText("发送异常：" + e.getMessage());
+					jLabel.setText(sdf.format(new Date()) + " 发送异常：" + e.getMessage());
 				}
 			} else {
 				try {
@@ -350,9 +356,9 @@ public class NotifyClient {
 					} else {
 						sender.sendCommand("none");
 					}
-					jLabel.setText("");
+					jLabel.setText(sdf.format(new Date()) + " 已发送消息到:"+ getServerTxt().getText());
 				} catch (Exception e) {
-					jLabel.setText("发送异常：" + e.getMessage());
+					jLabel.setText(sdf.format(new Date()) + " 发送异常：" + e.getMessage());
 				}
 			}
 		}
