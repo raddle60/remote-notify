@@ -310,7 +310,7 @@ public class NotifyClient {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					properties.setProperty("server", getServerTxt().getText());
 					try {
-						propFile.mkdirs();
+						propFile.getParentFile().mkdirs();
 						properties.store(new OutputStreamWriter(new FileOutputStream(propFile),"utf-8"), "");
 						getJTextArea().setText("保存配置成功");
 					} catch (Exception e1) {
