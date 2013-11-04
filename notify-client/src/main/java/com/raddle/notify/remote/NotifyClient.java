@@ -205,19 +205,31 @@ public class NotifyClient {
 								Point point = getComparePoint(positionColor.getPostion());
 								if (point != null) {
 									Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
-									Color cc = getCompareColor(positionColor.getColor());
+									positionColor.setCurColor(c);
+									if(positionColor.getPointColor() == null){
+									    positionColor.setPointColor(getCompareColor(positionColor.getColor()));
+									}
+									Color cc = positionColor.getPointColor();
 									if (cc != null) {
 										if(positionColor.isEqual() && cc.equals(c)){
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
 											changed = true;
 										} else if(!positionColor.isEqual() && !cc.equals(c)){
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-											changed = true;
+                                            changed = true;
+											// 只有比较不同颜色时才增加，有时候点会偏移
+                                            positionColor.setNotMatchedTimes(positionColor.getMaxNotMatchedTimes() + 1);
+                                            if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
+                                                // 连续不相同，说明点偏移了
+                                                positionColor.setPointColor(positionColor.getCurColor());
+                                            }
 										} else {
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
 										}
 									} else {
 										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
+										// 只要相同，不匹配次数清0
+										positionColor.setNotMatchedTimes(0);
 									}
 								} else {
 									sb.append("没有配置取点坐标").append("\n");
@@ -311,7 +323,8 @@ public class NotifyClient {
 			saveBtn.setBounds(new Rectangle(250, 255, 104, 26));
 			saveBtn.setText("保存配置");
 			saveBtn.addActionListener(new java.awt.event.ActionListener() {
-				public void actionPerformed(java.awt.event.ActionEvent e) {
+				@Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
 					properties.setProperty("server", getServerTxt().getText());
 					try {
 						propFile.getParentFile().mkdirs();
@@ -369,7 +382,8 @@ public class NotifyClient {
 	 */
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
+			@Override
+            public void run() {
 				NotifyClient application = new NotifyClient();
 				application.init();
 				application.getJFrame().setVisible(true);
