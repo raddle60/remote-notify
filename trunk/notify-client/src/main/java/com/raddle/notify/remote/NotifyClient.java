@@ -241,7 +241,7 @@ public class NotifyClient {
 											Color oldColor = getCompareColor(positionColor.getColor());
                                             if (!positionColor.isEqual() && !cc.equals(oldColor)) {
                                                 positionColor.setNotMatchedTimes(positionColor.getMaxNotMatchedTimes() + 1);
-                                                sb.append("\n原颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()).append(
+                                                sb.append("配置的颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()).append(
                                                         "\n");
                                                 if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
                                                     // 和原色不同，重新找一下
