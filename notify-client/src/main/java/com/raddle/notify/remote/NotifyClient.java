@@ -209,6 +209,7 @@ public class NotifyClient {
                                 Point point = positionColor.getPostionPoint();
 								if (point != null) {
 									Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
+									positionColor.setPreColor(positionColor.getCurColor());
 									positionColor.setCurColor(c);
 									if(positionColor.getPointColor() == null){
 									    positionColor.setPointColor(getCompareColor(positionColor.getColor()));
@@ -222,7 +223,13 @@ public class NotifyClient {
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
                                             changed = true;
 											// 只有比较不同颜色时才增加，通知的图标不活动隐藏了，点会偏移
-                                            positionColor.setNotMatchedTimes(positionColor.getMaxNotMatchedTimes() + 1);
+                                            // 而且颜色不闪烁才增加
+                                            if (positionColor.getPreColor() != null
+                                                    && positionColor.getPreColor().equals(positionColor.getPointColor())) {
+                                                positionColor.setNotMatchedTimes(positionColor.getMaxNotMatchedTimes() + 1);
+                                            } else {
+                                                positionColor.setNotMatchedTimes(0);
+                                            }
                                             if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
                                                 // 连续不相同，说明点偏移了
                                                 positionColor.setPointColor(positionColor.getCurColor());
@@ -248,6 +255,7 @@ public class NotifyClient {
                                                         }
                                                     }
                                                 }
+                                                positionColor.setNotMatchedTimes(0);
                                             }
 										} else {
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
@@ -255,11 +263,11 @@ public class NotifyClient {
 											if(!positionColor.isEqual() && !cc.equals(oldColor)){
 											    sb.append("\n原颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()).append("\n");
 											}
+		                                    // 只要相同，不匹配次数清0
+	                                        positionColor.setNotMatchedTimes(0);
 										}
 									} else {
 										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
-										// 只要相同，不匹配次数清0
-										positionColor.setNotMatchedTimes(0);
 									}
 								} else {
 									sb.append("没有配置取点坐标").append("\n");

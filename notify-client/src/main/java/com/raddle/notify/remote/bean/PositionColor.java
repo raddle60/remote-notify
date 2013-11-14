@@ -10,6 +10,7 @@ public class PositionColor {
     private String color;
     private Color pointColor;
     private Color curColor;
+    private Color preColor;
     private int maxNotMatchedTimes = 3;
     private int notMatchedTimes = 0;
     private int scanRange = 100;
@@ -84,5 +85,13 @@ public class PositionColor {
 
     public void setPostionPoint(Point postionPoint) {
         this.postionPoint = postionPoint;
+    }
+
+    public Color getPreColor() {
+        return preColor;
+    }
+
+    public void setPreColor(Color preColor) {
+        this.preColor = preColor;
     }
 }
