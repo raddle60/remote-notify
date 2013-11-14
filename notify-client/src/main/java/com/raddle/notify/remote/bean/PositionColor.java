@@ -1,15 +1,18 @@
 package com.raddle.notify.remote.bean;
 
 import java.awt.Color;
+import java.awt.Point;
 
 public class PositionColor {
     private boolean equal = false;
     private String postion;
+    private Point postionPoint;
     private String color;
     private Color pointColor;
     private Color curColor;
     private int maxNotMatchedTimes = 3;
     private int notMatchedTimes = 0;
+    private int scanRange = 100;
 
     public boolean isEqual() {
         return equal;
@@ -65,5 +68,21 @@ public class PositionColor {
 
     public void setNotMatchedTimes(int notMatchedTimes) {
         this.notMatchedTimes = notMatchedTimes;
+    }
+
+    public int getScanRange() {
+        return scanRange;
+    }
+
+    public void setScanRange(int scanRange) {
+        this.scanRange = scanRange;
+    }
+
+    public Point getPostionPoint() {
+        return postionPoint;
+    }
+
+    public void setPostionPoint(Point postionPoint) {
+        this.postionPoint = postionPoint;
     }
 }
