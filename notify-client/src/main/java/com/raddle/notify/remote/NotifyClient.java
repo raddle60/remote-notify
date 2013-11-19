@@ -224,31 +224,33 @@ public class NotifyClient {
 											changed = true;
 										} else if(!positionColor.isEqual() && !cc.equals(c)){
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-                                            changed = true;
+                                            sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
+											changed = true;
 											// 只有比较不同颜色时才增加，通知的图标不活动隐藏了，点会偏移
                                             // 而且颜色不闪烁才增加
                                             if (positionColor.getPreColor() != null
                                                     && positionColor.getPreColor().equals(positionColor.getPointColor())) {
-                                                positionColor.setNotMatchedTimes(positionColor.getMaxNotMatchedTimes() + 1);
+                                                positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
                                             } else {
                                                 positionColor.setNotMatchedTimes(0);
                                             }
                                             if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
                                                 // 连续不相同，说明点偏移了
                                                 positionColor.setPointColor(positionColor.getCurColor());
-                                                scanColorInRange(robot,positionColor, point);
+                                                scanColorInRange(robot,positionColor, point, sb);
                                                 positionColor.setNotMatchedTimes(0);
                                             }
 										} else {
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
 											Color oldColor = getCompareColor(positionColor.getColor());
                                             if (!positionColor.isEqual() && !cc.equals(oldColor)) {
-                                                positionColor.setNotMatchedTimes(positionColor.getMaxNotMatchedTimes() + 1);
+                                                sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
+                                                positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
                                                 sb.append("配置的颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()).append(
                                                         "\n");
                                                 if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
                                                     // 和原色不同，重新找一下
-                                                    scanColorInRange(robot, positionColor, point);
+                                                    scanColorInRange(robot, positionColor, point,sb);
                                                     positionColor.setNotMatchedTimes(0);
                                                 }
                                             }
@@ -402,7 +404,7 @@ public class NotifyClient {
 		}
 	}
 
-	private void scanColorInRange(Robot robot, PositionColor positionColor, Point point) {
+	private void scanColorInRange(Robot robot, PositionColor positionColor, Point point, StringBuilder sb) {
         Point oldPoint = getComparePoint(positionColor.getPostion());
         Color oldColor = getCompareColor(positionColor.getColor());
         if (!oldColor.equals(positionColor.getPointColor())) {
@@ -415,15 +417,16 @@ public class NotifyClient {
                 Color rightColor = robot.getPixelColor((int) rightPoint.getX(), (int) rightPoint.getY());
                 if (oldColor.equals(rightColor)) {
                     positionColor.setPostionPoint(rightPoint);
-                    break;
+                    return;
                 }
                 Point leftPoint = new Point((int) point.getX() - i, (int) point.getY());
                 Color leftColor = robot.getPixelColor((int) leftPoint.getX(), (int) leftPoint.getY());
                 if (oldColor.equals(leftColor)) {
                     positionColor.setPostionPoint(leftPoint);
-                    break;
+                    return;
                 }
             }
+            sb.append("未找到颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()+", 范围"+positionColor.getScanRange()).append("\n");
         }
     }
 
