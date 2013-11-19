@@ -202,6 +202,9 @@ public class NotifyClient {
 							changed = true;
 						} else {
 							for (PositionColor positionColor : listPsColor) {
+                                if (positionColor.getMaxNotMatchedTimes() <= 0) {
+                                    positionColor.setMaxNotMatchedTimes(3);
+                                }
                                 Point orgPoint = getComparePoint(positionColor.getPostion());
                                 if (positionColor.getPostionPoint() == null) {
                                     positionColor.setPostionPoint(orgPoint);
