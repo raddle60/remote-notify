@@ -229,7 +229,7 @@ public class NotifyClient {
 											// 只有比较不同颜色时才增加，通知的图标不活动隐藏了，点会偏移
                                             // 而且颜色不闪烁才增加
                                             if (positionColor.getPreColor() != null
-                                                    && positionColor.getPreColor().equals(positionColor.getPointColor())) {
+                                                    && positionColor.getPreColor().equals(positionColor.getCurColor())) {
                                                 positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
                                             } else {
                                                 positionColor.setNotMatchedTimes(0);
