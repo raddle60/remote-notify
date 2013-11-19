@@ -225,7 +225,6 @@ public class NotifyClient {
 										} else if(!positionColor.isEqual() && !cc.equals(c)){
 											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
                                             sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
-                                            sb.append(positionColor.getPreColor() + "  " + positionColor.getCurColor() + "\n");
 											changed = true;
 											// 只有比较不同颜色时才增加，通知的图标不活动隐藏了，点会偏移
                                             // 而且颜色不闪烁才增加
