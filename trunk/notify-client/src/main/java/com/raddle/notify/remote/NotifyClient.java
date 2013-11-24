@@ -5,8 +5,13 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,6 +28,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -68,6 +74,8 @@ public class NotifyClient {
 	private NioSocketConnector connector = new NioSocketConnector();  //  @jve:decl-index=0:
 	private List<PositionColor> listPsColor = new ArrayList<PositionColor>();  //  @jve:decl-index=0:
 	private JLabel jLabel = null;
+	private BufferedImage noMsgImage = null;  //  @jve:decl-index=0:
+	private TrayIcon trayIcon = null;  //  @jve:decl-index=0:
 
 	/**
 	 * This method initializes jFrame
@@ -89,6 +97,13 @@ public class NotifyClient {
 					connector.dispose();
 					super.windowClosed(e);
 				}
+
+				@Override
+				public void windowIconified(WindowEvent e) {
+					jFrame.setVisible(false);
+					super.windowIconified(e);
+				}
+					
 			});
 		}
 		return jFrame;
@@ -186,6 +201,27 @@ public class NotifyClient {
 			}
 		}
 		////////////////
+		try {
+			noMsgImage = ImageIO.read(NotifyClient.class.getResourceAsStream("/man.png"));
+			SystemTray systemTray = SystemTray.getSystemTray();
+			trayIcon = new TrayIcon(noMsgImage, "颜色变化通知监视器");
+			systemTray.add(trayIcon);
+			trayIcon.addMouseListener(new MouseAdapter() {
+				public void mouseClicked(MouseEvent e) {
+					if (e.getClickCount() == 2) {// 双击托盘窗口再现
+						if(jFrame.isVisible()){
+							jFrame.setVisible(false);
+						} else {
+							jFrame.setVisible(true);
+							jFrame.setState(JFrame.NORMAL);
+						}
+					}
+				}
+			});
+		} catch (Exception e) {
+			getJTextArea().setText(e.getMessage());
+		}
+		//////////
 		try {
 			new Timer(true).schedule(new TimerTask() {
 				private Robot robot = new Robot();
@@ -405,7 +441,6 @@ public class NotifyClient {
 	}
 
 	private void scanColorInRange(Robot robot, PositionColor positionColor, Point point, StringBuilder sb) {
-        Point oldPoint = getComparePoint(positionColor.getPostion());
         Color oldColor = getCompareColor(positionColor.getColor());
         if (!oldColor.equals(positionColor.getPointColor())) {
             // 点不同了，改变x向两边查找
