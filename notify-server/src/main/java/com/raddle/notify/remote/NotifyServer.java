@@ -65,7 +65,7 @@ public class NotifyServer {
 			jFrame = new JFrame();
 			jFrame.setLocationRelativeTo(null);
 			jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			jFrame.setSize(300, 200);
+			jFrame.setSize(430, 311);
 			jFrame.setContentPane(getJDesktopPane());
 			jFrame.setTitle("通知服务端");
 			jFrame.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -151,6 +151,7 @@ public class NotifyServer {
 						jFrame.setVisible(false);
 					} else {
 						jFrame.setVisible(true);
+						jFrame.setState(JFrame.NORMAL);
 					}
 				}
 			}
@@ -274,7 +275,7 @@ public class NotifyServer {
 	private JScrollPane getJScrollPane() {
 		if (jScrollPane == null) {
 			jScrollPane = new JScrollPane();
-			jScrollPane.setBounds(new Rectangle(15, 61, 267, 104));
+			jScrollPane.setBounds(new Rectangle(15, 61, 389, 202));
 			jScrollPane.setViewportView(getMessageTxt());
 		}
 		return jScrollPane;
