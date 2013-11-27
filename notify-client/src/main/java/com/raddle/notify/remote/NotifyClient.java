@@ -468,13 +468,22 @@ public class NotifyClient {
     /**
 	 * Launches this application
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
             public void run() {
 				NotifyClient application = new NotifyClient();
 				application.init();
-				application.getJFrame().setVisible(true);
+				if (args != null) {
+					for (String string : args) {
+						if ("-m".equals(string)) {
+							application.getJFrame().setState(JFrame.ICONIFIED);
+						}
+					}
+				}
+				if (application.getJFrame().getState() != JFrame.ICONIFIED) {
+					application.getJFrame().setVisible(true);
+				}
 			}
 		});
 	}
