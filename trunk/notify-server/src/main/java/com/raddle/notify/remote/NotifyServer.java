@@ -232,14 +232,7 @@ public class NotifyServer {
 			startBtn.setText("启动");
 			startBtn.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					try {
-						acceptor.bind(new InetSocketAddress(Integer.parseInt(getPortTxt().getText())));
-						getMessageTxt().setText("监听在端口"+getPortTxt().getText());
-						getStopBtn().setEnabled(true);
-						getStartBtn().setEnabled(false);
-					} catch (Exception e1) {
-						getMessageTxt().setText(e1.getMessage());
-					}
+					startServer();
 				}
 			});
 		}
@@ -307,16 +300,44 @@ public class NotifyServer {
 		return portTxt;
 	}
 
+	public void startServer() {
+		if (!getStartBtn().isEnabled()) {
+			return;
+		}
+		try {
+			acceptor.bind(new InetSocketAddress(Integer.parseInt(getPortTxt().getText())));
+			getMessageTxt().setText("监听在端口" + getPortTxt().getText());
+			getStopBtn().setEnabled(true);
+			getStartBtn().setEnabled(false);
+		} catch (Exception e1) {
+			getMessageTxt().setText(e1.getMessage());
+		}
+	}
+
 	/**
 	 * Launches this application
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				NotifyServer application = new NotifyServer();
 				application.getJFrame();
 				application.init();
-				application.getJFrame().setVisible(true);
+				if (args != null) {
+					for (String string : args) {
+						if ("-s".equals(string)) {
+							application.startServer();
+						}
+					}
+					for (String string : args) {
+						if ("-m".equals(string)) {
+							application.getJFrame().setState(JFrame.ICONIFIED);
+						}
+					}
+				}
+				if (application.getJFrame().getState() != JFrame.ICONIFIED) {
+					application.getJFrame().setVisible(true);
+				}
 			}
 		});
 	}
