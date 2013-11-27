@@ -169,12 +169,25 @@ public class NotifyClient {
 				@Override
 				public void mouseDragged(MouseEvent e) {
 					Point onScreen = e.getLocationOnScreen();
-					BufferedImage screenCapture = robot.createScreenCapture(new Rectangle(onScreen.x - 40, onScreen.y - 40, 80, 80));
+					int pixSize = 5;
+					int count = pickImgPane.getWidth()/pixSize;
+					int x = onScreen.x - count / 2;
+					int y = onScreen.y - count / 2;
 					Graphics graphics = pickImgPane.getGraphics();
-					graphics.drawImage(screenCapture, 0, 0, 80, 80, Color.white, null);
+					for (int i = 0; i < count; i++) {
+						for (int j = 0; j < count; j++) {
+							Color c = robot.getPixelColor(x + i, y + j);
+							graphics.setColor(c);
+							graphics.fillRect(i * pixSize, j * pixSize, pixSize, pixSize);
+						}
+					}
 					Color c = robot.getPixelColor(onScreen.x, onScreen.y);
-					graphics.drawLine(0, 40, 79, 40);
-					graphics.drawLine(40, 0, 40, 79);
+					graphics.setColor(Color.BLACK);
+					graphics.fillRect(40, 0, pixSize, 80);
+					graphics.fillRect(0, 40, 80, pixSize);
+					graphics.setColor(c);
+					graphics.fillRect(40, 40, pixSize, pixSize);
+					graphics.setColor(Color.BLACK);
 					graphics.drawLine(0, 0, 79, 0);
 					graphics.drawLine(0, 0, 0, 79);
 					graphics.drawLine(0, 79, 79, 79);
