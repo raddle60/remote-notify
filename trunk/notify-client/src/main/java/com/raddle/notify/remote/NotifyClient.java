@@ -1,14 +1,18 @@
 package com.raddle.notify.remote;
 
-import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -29,10 +33,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -76,6 +82,9 @@ public class NotifyClient {
 	private JLabel jLabel = null;
 	private BufferedImage noMsgImage = null;  //  @jve:decl-index=0:
 	private TrayIcon trayIcon = null;  //  @jve:decl-index=0:
+	private JTextField msgTxt;
+	private Robot robot = null;
+	private JPanel pickImgPane;
 
 	/**
 	 * This method initializes jFrame
@@ -87,7 +96,7 @@ public class NotifyClient {
 			jFrame = new JFrame();
 			jFrame.setLocationRelativeTo(null);
 			jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			jFrame.setSize(545, 363);
+			jFrame.setSize(556, 377);
 			jFrame.setContentPane(getJDesktopPane());
 			jFrame.setTitle("通知客户端");
 			jFrame.addWindowListener(new WindowAdapter() {
@@ -129,6 +138,64 @@ public class NotifyClient {
 			jDesktopPane.add(getServerTxt(), null);
 			jDesktopPane.add(getSaveBtn(), null);
 			jDesktopPane.add(jLabel, null);
+			
+			JButton pickColorBtn = new JButton("\u83B7\u53D6\u989C\u8272");
+			pickColorBtn.setToolTipText("鼠标按住不放拖拽，松开时取色。拖拽时方向键微调。");
+			pickColorBtn.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					if (e.getKeyCode() == KeyEvent.VK_UP) {
+						Point mousepoint = MouseInfo.getPointerInfo().getLocation();
+						robot.mouseMove(mousepoint.x, mousepoint.y - 1);
+					} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+						Point mousepoint = MouseInfo.getPointerInfo().getLocation();
+						robot.mouseMove(mousepoint.x, mousepoint.y + 1);
+					} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+						Point mousepoint = MouseInfo.getPointerInfo().getLocation();
+						robot.mouseMove(mousepoint.x - 1, mousepoint.y);
+					} else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+						Point mousepoint = MouseInfo.getPointerInfo().getLocation();
+						robot.mouseMove(mousepoint.x + 1, mousepoint.y);
+					}
+				}
+			});
+			pickColorBtn.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseReleased(MouseEvent e) {
+					
+				}
+			});
+			pickColorBtn.addMouseMotionListener(new MouseMotionAdapter() {
+				@Override
+				public void mouseDragged(MouseEvent e) {
+					Point onScreen = e.getLocationOnScreen();
+					BufferedImage screenCapture = robot.createScreenCapture(new Rectangle(onScreen.x - 40, onScreen.y - 40, 80, 80));
+					Graphics graphics = pickImgPane.getGraphics();
+					graphics.drawImage(screenCapture, 0, 0, 80, 80, Color.white, null);
+					Color c = robot.getPixelColor(onScreen.x, onScreen.y);
+					graphics.drawLine(0, 40, 79, 40);
+					graphics.drawLine(40, 0, 40, 79);
+					graphics.drawLine(0, 0, 79, 0);
+					graphics.drawLine(0, 0, 0, 79);
+					graphics.drawLine(0, 79, 79, 79);
+					graphics.drawLine(79, 0, 79, 79);
+					msgTxt.setText("POS:" + onScreen.x + "," + onScreen.y + "   RGB:" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()
+							+ "   HEX:0x" + Integer.toHexString(c.getRGB()));
+				}
+			});
+			pickColorBtn.setBounds(451, 253, 80, 27);
+			jDesktopPane.add(pickColorBtn);
+			
+			msgTxt = new JTextField();
+			msgTxt.setBounds(10, 299, 344, 39);
+			jDesktopPane.add(msgTxt);
+			msgTxt.setColumns(10);
+			msgTxt.setEditable(false);
+			
+			pickImgPane = new JPanel();
+			pickImgPane.setBounds(361, 254, 80, 80);
+			pickImgPane.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+			jDesktopPane.add(pickImgPane);
 		}
 		return jDesktopPane;
 	}
@@ -218,97 +285,93 @@ public class NotifyClient {
 					}
 				}
 			});
+			robot = new Robot();
 		} catch (Exception e) {
 			getJTextArea().setText(e.getMessage());
 		}
 		//////////
-		try {
-			new Timer(true).schedule(new TimerTask() {
-				private Robot robot = new Robot();
-
-				@Override
-				public void run() {
-					StringBuilder sb = new StringBuilder();
-					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					sb.append(sdf.format(new Date()) + " ");
-					boolean changed = false;
-					try {
-						if(listPsColor == null || listPsColor.size() == 0){
-							sb.append("没有配置比较的颜色").append("\n");
-							changed = true;
-						} else {
-							for (PositionColor positionColor : listPsColor) {
-                                if (positionColor.getMaxNotMatchedTimes() <= 0) {
-                                    positionColor.setMaxNotMatchedTimes(3);
-                                }
-                                Point orgPoint = getComparePoint(positionColor.getPostion());
-                                if (positionColor.getPostionPoint() == null) {
-                                    positionColor.setPostionPoint(orgPoint);
-                                }
-                                Point point = positionColor.getPostionPoint();
-								if (point != null) {
-									Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
-									positionColor.setPreColor(positionColor.getCurColor());
-									positionColor.setCurColor(c);
-									if(positionColor.getPointColor() == null){
-									    positionColor.setPointColor(getCompareColor(positionColor.getColor()));
-									}
-									Color cc = positionColor.getPointColor();
-									if (cc != null) {
-										if(positionColor.isEqual() && cc.equals(c)){
-											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-											changed = true;
-										} else if(!positionColor.isEqual() && !cc.equals(c)){
-											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
-                                            sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
-											changed = true;
-											// 只有比较不同颜色时才增加，通知的图标不活动隐藏了，点会偏移
-                                            // 而且颜色不闪烁才增加
-                                            if (positionColor.getPreColor() != null
-                                                    && positionColor.getPreColor().equals(positionColor.getCurColor())) {
-                                                positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
-                                            } else {
-                                                positionColor.setNotMatchedTimes(0);
-                                            }
-                                            if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
-                                                // 连续不相同，说明点偏移了
-                                                positionColor.setPointColor(positionColor.getCurColor());
-                                                scanColorInRange(robot,positionColor, point, sb);
-                                                positionColor.setNotMatchedTimes(0);
-                                            }
-										} else {
-											sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
-											Color oldColor = getCompareColor(positionColor.getColor());
-                                            if (!positionColor.isEqual() && !cc.equals(oldColor)) {
-                                                sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
-                                                positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
-                                                sb.append("配置的颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()).append(
-                                                        "\n");
-                                                if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
-                                                    // 和原色不同，重新找一下
-                                                    scanColorInRange(robot, positionColor, point,sb);
-                                                    positionColor.setNotMatchedTimes(0);
-                                                }
-                                            }
-										}
+		new Timer(true).schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				StringBuilder sb = new StringBuilder();
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				sb.append(sdf.format(new Date()) + " ");
+				boolean changed = false;
+				try {
+					if(listPsColor == null || listPsColor.size() == 0){
+						sb.append("没有配置比较的颜色").append("\n");
+						changed = true;
+					} else {
+						for (PositionColor positionColor : listPsColor) {
+                            if (positionColor.getMaxNotMatchedTimes() <= 0) {
+                                positionColor.setMaxNotMatchedTimes(3);
+                            }
+                            Point orgPoint = getComparePoint(positionColor.getPostion());
+                            if (positionColor.getPostionPoint() == null) {
+                                positionColor.setPostionPoint(orgPoint);
+                            }
+                            Point point = positionColor.getPostionPoint();
+							if (point != null) {
+								Color c = robot.getPixelColor((int) point.getX(), (int) point.getY());
+								positionColor.setPreColor(positionColor.getCurColor());
+								positionColor.setCurColor(c);
+								if(positionColor.getPointColor() == null){
+								    positionColor.setPointColor(getCompareColor(positionColor.getColor()));
+								}
+								Color cc = positionColor.getPointColor();
+								if (cc != null) {
+									if(positionColor.isEqual() && cc.equals(c)){
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色等于捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
+										changed = true;
+									} else if(!positionColor.isEqual() && !cc.equals(c)){
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")颜色发生变化，捕获的颜色(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ")，比较的颜色" + cc.getRed() + "," + cc.getGreen() + "," + cc.getBlue()).append("\n");
+                                        sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
+										changed = true;
+										// 只有比较不同颜色时才增加，通知的图标不活动隐藏了，点会偏移
+                                        // 而且颜色不闪烁才增加
+                                        if (positionColor.getPreColor() != null
+                                                && positionColor.getPreColor().equals(positionColor.getCurColor())) {
+                                            positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
+                                        } else {
+                                            positionColor.setNotMatchedTimes(0);
+                                        }
+                                        if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
+                                            // 连续不相同，说明点偏移了
+                                            positionColor.setPointColor(positionColor.getCurColor());
+                                            scanColorInRange(robot,positionColor, point, sb);
+                                            positionColor.setNotMatchedTimes(0);
+                                        }
 									} else {
-										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
+										sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有变化").append("\n");
+										Color oldColor = getCompareColor(positionColor.getColor());
+                                        if (!positionColor.isEqual() && !cc.equals(oldColor)) {
+                                            sb.append("未匹配的次数"+positionColor.getNotMatchedTimes()+"\n");
+                                            positionColor.setNotMatchedTimes(positionColor.getNotMatchedTimes() + 1);
+                                            sb.append("配置的颜色" + oldColor.getRed() + "," + oldColor.getGreen() + "," + oldColor.getBlue()).append(
+                                                    "\n");
+                                            if (positionColor.getNotMatchedTimes() > positionColor.getMaxNotMatchedTimes()) {
+                                                // 和原色不同，重新找一下
+                                                scanColorInRange(robot, positionColor, point,sb);
+                                                positionColor.setNotMatchedTimes(0);
+                                            }
+                                        }
 									}
 								} else {
-									sb.append("没有配置取点坐标").append("\n");
+									sb.append("在(" + ((int) point.getX()) + "," + ((int) point.getY()) + ")捕获的颜色" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()+", 没有配置比较颜色").append("\n");
 								}
+							} else {
+								sb.append("没有配置取点坐标").append("\n");
 							}
 						}
-					} catch (Exception e) {
-						sb.append("\n").append(e.getMessage());
 					}
-					sendMessage(changed);
-					getJTextArea().setText(sb.toString());
+				} catch (Exception e) {
+					sb.append("\n").append(e.getMessage());
 				}
-			}, 500, 1000);
-		} catch (AWTException e) {
-			getJTextArea().setText(e.getMessage());
-		}
+				sendMessage(changed);
+				getJTextArea().setText(sb.toString());
+			}
+		}, 500, 1000);
 		/////////// connector setting
 		connector.setConnectTimeoutMillis(1000);
 		ChainCodecFactory chainCodecFactory = new ChainCodecFactory();
@@ -487,5 +550,4 @@ public class NotifyClient {
 			}
 		});
 	}
-
 }
