@@ -1,6 +1,7 @@
 package com.raddle.notify.remote;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -82,7 +83,7 @@ public class NotifyClient {
 	private JLabel jLabel = null;
 	private BufferedImage noMsgImage = null;  //  @jve:decl-index=0:
 	private TrayIcon trayIcon = null;  //  @jve:decl-index=0:
-	private JTextField msgTxt;
+	private JTextArea msgTxt;
 	private Robot robot = null;
 	private JPanel pickImgPane;
 
@@ -96,7 +97,7 @@ public class NotifyClient {
 			jFrame = new JFrame();
 			jFrame.setLocationRelativeTo(null);
 			jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			jFrame.setSize(556, 377);
+			jFrame.setSize(560, 472);
 			jFrame.setContentPane(getJDesktopPane());
 			jFrame.setTitle("通知客户端");
 			jFrame.addWindowListener(new WindowAdapter() {
@@ -169,44 +170,43 @@ public class NotifyClient {
 				@Override
 				public void mouseDragged(MouseEvent e) {
 					Point onScreen = e.getLocationOnScreen();
-					int pixSize = 5;
-					int count = pickImgPane.getWidth()/pixSize;
+                    int pixSize = 10;
+                    int width = pickImgPane.getWidth() - pickImgPane.getWidth() % pixSize;
+                    int count = width / pixSize;
 					int x = onScreen.x - count / 2;
 					int y = onScreen.y - count / 2;
+					BufferedImage capture = robot.createScreenCapture(new Rectangle(x, y, width, width));
 					Graphics graphics = pickImgPane.getGraphics();
 					for (int i = 0; i < count; i++) {
 						for (int j = 0; j < count; j++) {
-							Color c = robot.getPixelColor(x + i, y + j);
-							graphics.setColor(c);
+							Color capColor = new Color(capture.getRGB(i, j));
+							graphics.setColor(capColor);
 							graphics.fillRect(i * pixSize, j * pixSize, pixSize, pixSize);
 						}
 					}
-					Color c = robot.getPixelColor(onScreen.x, onScreen.y);
-					graphics.setColor(Color.BLACK);
-					graphics.fillRect(40, 0, pixSize, 80);
-					graphics.fillRect(0, 40, 80, pixSize);
-					graphics.setColor(c);
-					graphics.fillRect(40, 40, pixSize, pixSize);
-					graphics.setColor(Color.BLACK);
-					graphics.drawLine(0, 0, 79, 0);
-					graphics.drawLine(0, 0, 0, 79);
-					graphics.drawLine(0, 79, 79, 79);
-					graphics.drawLine(79, 0, 79, 79);
-					msgTxt.setText("POS:" + onScreen.x + "," + onScreen.y + "   RGB:" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()
-							+ "   HEX:0x" + Integer.toHexString(c.getRGB()));
+                    Color c = robot.getPixelColor(onScreen.x, onScreen.y);
+                    graphics.setColor(Color.BLACK);
+                    graphics.drawLine(width / 2 + pixSize / 2, 0, width / 2 + pixSize / 2, width);
+                    graphics.drawLine(0, width / 2 + pixSize / 2, width, width / 2 + pixSize / 2);
+                    graphics.setColor(c);
+                    graphics.fillRect(width / 2, width / 2, pixSize, pixSize);
+                    graphics.setColor(Color.BLACK);
+                    graphics.setXORMode(Color.WHITE);
+                    graphics.drawRect(width / 2, width / 2, pixSize - 1, pixSize - 1);
+                    msgTxt.setText("POSITION:" + onScreen.x + "," + onScreen.y + "\nRGB:" + c.getRed() + "," + c.getGreen() + "," + c.getBlue()
+                            + "\nHEX:0x" + Integer.toHexString(c.getRGB()));
 				}
 			});
-			pickColorBtn.setBounds(451, 253, 80, 27);
+			pickColorBtn.setBounds(274, 350, 80, 27);
 			jDesktopPane.add(pickColorBtn);
 			
-			msgTxt = new JTextField();
-			msgTxt.setBounds(10, 299, 344, 39);
+			msgTxt = new JTextArea();
+			msgTxt.setBounds(10, 299, 250, 115);
 			jDesktopPane.add(msgTxt);
-			msgTxt.setColumns(10);
 			msgTxt.setEditable(false);
 			
 			pickImgPane = new JPanel();
-			pickImgPane.setBounds(361, 254, 80, 80);
+			pickImgPane.setBounds(361, 254, 160, 160);
 			pickImgPane.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			jDesktopPane.add(pickImgPane);
 		}
@@ -287,13 +287,14 @@ public class NotifyClient {
 			trayIcon = new TrayIcon(noMsgImage, "颜色变化通知监视器");
 			systemTray.add(trayIcon);
 			trayIcon.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent e) {
+				@Override
+                public void mouseClicked(MouseEvent e) {
 					if (e.getClickCount() == 2) {// 双击托盘窗口再现
 						if(jFrame.isVisible()){
 							jFrame.setVisible(false);
 						} else {
 							jFrame.setVisible(true);
-							jFrame.setState(JFrame.NORMAL);
+							jFrame.setState(Frame.NORMAL);
 						}
 					}
 				}
@@ -553,11 +554,11 @@ public class NotifyClient {
 				if (args != null) {
 					for (String string : args) {
 						if ("-m".equals(string)) {
-							application.getJFrame().setState(JFrame.ICONIFIED);
+							application.getJFrame().setState(Frame.ICONIFIED);
 						}
 					}
 				}
-				if (application.getJFrame().getState() != JFrame.ICONIFIED) {
+				if (application.getJFrame().getState() != Frame.ICONIFIED) {
 					application.getJFrame().setVisible(true);
 				}
 			}
